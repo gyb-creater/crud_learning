@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户信息表</title>
+    <link rel="stylesheet" href="element.css">
+    <style>
+        body {
+            margin: 0;
+            background: #ffffff;
+            font-family: "Microsoft YaHei", sans-serif;
+            color: #606266;
+        }
+
+        #app {
+            width: 92%;
+            margin: 34px auto 40px;
+        }
+
+        .page-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 34px;
+            color: #111111;
+            font-weight: 700;
+        }
+
+        .head-user {
+            color: #909399;
+            font-size: 14px;
+        }
+
+        .toolbar {
+            margin-bottom: 14px;
+        }
+
+        .toolbar .el-button {
+            height: 62px;
+            min-width: 78px;
+            border-radius: 8px;
+            font-size: 18px;
+            padding: 0 26px;
+        }
+
+        .toolbar .el-input {
+            width: 340px;
+            margin-left: 10px;
+        }
+
+        .toolbar .el-input__inner {
+            height: 62px;
+            line-height: 62px;
+            border-radius: 8px;
+            font-size: 18px;
+            color: #606266;
+        }
+
+        .user-table th.el-table__cell {
+            background: #ffffff;
+            color: #909399;
+            font-size: 18px;
+            font-weight: 700;
+            height: 74px;
+        }
+
+        .user-table td.el-table__cell {
+            font-size: 18px;
+            color: #606266;
+            height: 84px;
+        }
+
+        .action-btn {
+            width: 52px;
+            height: 52px;
+            padding: 0;
+            border-radius: 50%;
+            font-size: 20px;
+            border: none;
+        }
+
+        .action-btn + .action-btn {
+            margin-left: 10px;
+        }
+
+        .pagination-box {
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        .pagination-box .el-pagination {
+            display: inline-block;
+        }
+
+        .pagination-box .btn-prev,
+        .pagination-box .btn-next,
+        .pagination-box .el-pager li {
+            min-width: 34px;
+            height: 34px;
+            line-height: 34px;
+            font-size: 22px;
+            background: transparent;
+        }
+
+        .pagination-box .el-pager li.active {
+            color: #409eff;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="page-head">
+        <h2>用户信息表</h2>
+        <div class="head-user">
+            <span v-if="loginUser.name">当前用户：{{ loginUser.name }}</span>
+            <el-button type="text" @click="logout">退出登录</el-button>
+        </div>
+    </div>
+
+    <el-row class="toolbar">
+        <el-col :span="24">
+            <el-button type="primary" @click="add">新增</el-button>
+            <el-input
+                    v-model="name"
+                    clearable
+                    placeholder=""
+                    @keyup.enter.native="loadTable(1)">
+            </el-input>
+        </el-col>
+    </el-row>
+
+    <el-table
+            class="user-table"
+            :data="page.content || []"
+            border
+            style="width: 100%">
+        <el-table-column prop="name" label="用户名"></el-table-column>
+        <el-table-column prop="age" label="年龄" width="160"></el-table-column>
+        <el-table-column prop="sex" label="性别" width="160"></el-table-column>
+        <el-table-column prop="address" label="地址"></el-table-column>
+        <el-table-column prop="phone" label="电话" width="360"></el-table-column>
+        <el-table-column label="操作" width="160" align="center">
+            <template slot-scope="scope">
+                <el-button
+                        class="action-btn"
+                        type="primary"
+                        icon="el-icon-edit"
+                        circle
+                        @click="edit(scope.row)">
+                </el-button>
+                <el-button
+                        class="action-btn"
+                        type="danger"
+                        icon="el-icon-delete"
+                        circle
+                        @click="del(scope.row.id)">
+                </el-button>
+            </template>
+        </el-table-column>
+    </el-table>
+
+    <div class="pagination-box">
+        <el-pagination
+                @current-change="loadTable"
+                :current-page="pageNum"
+                :page-size="pageSize"
+                layout="prev, pager, next"
+                :total="page.totalElements || 0">
+        </el-pagination>
+    </div>
+
+    <el-dialog title="用户信息" :visible.sync="dialogVisible" width="520px">
+        <el-form :model="form" label-width="80px">
+            <el-form-item label="用户名">
+                <el-input v-model="form.name"></el-input>
+            </el-form-item>
+            <el-form-item label="年龄">
+                <el-input v-model="form.age"></el-input>
+            </el-form-item>
+            <el-form-item label="性别">
+                <el-select v-model="form.sex" placeholder="请选择性别" style="width: 100%">
+                    <el-option label="男" value="男"></el-option>
+                    <el-option label="女" value="女"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="地址">
+                <el-input v-model="form.address"></el-input>
+            </el-form-item>
+            <el-form-item label="电话">
+                <el-input v-model="form.phone"></el-input>
+            </el-form-item>
+            <el-form-item label="创建时间">
+                <el-input v-model="form.createTime" placeholder="例如：2020-11-18"></el-input>
+            </el-form-item>
+        </el-form>
+        <span slot="footer">
+            <el-button @click="dialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="save">确定</el-button>
+        </span>
+    </el-dialog>
+</div>
+
+<script src="jquery.min.js"></script>
+<script src="vue.js"></script>
+<script src="element.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            page: {
+                content: [],
+                totalElements: 0
+            },
+            name: '',
+            pageNum: 1,
+            pageSize: 8,
+            dialogVisible: false,
+            form: {},
+            loginUser: {}
+        },
+        created() {
+            var loginUser = localStorage.getItem('loginUser');
+            if (!loginUser) {
+                window.location.href = 'page/login.html';
+                return;
+            }
+            this.loginUser = JSON.parse(loginUser);
+            this.loadTable(this.pageNum);
+        },
+        methods: {
+            // 按页码和用户名条件加载表格数据
+            loadTable(num) {
+                this.pageNum = num;
+                $.get('/user/page?pageNum=' + this.pageNum + '&pageSize=' + this.pageSize + '&name=' + encodeURIComponent(this.name))
+                    .then(res => {
+                        if (res.code === '0') {
+                            this.page = res.data || {content: [], totalElements: 0};
+                        } else {
+                            this.$message.error(res.msg || '加载数据失败');
+                        }
+                    })
+                    .catch(() => {
+                        this.$message.error('请求失败，请检查后端服务');
+                    });
+            },
+
+            // 打开新增弹窗
+            add() {
+                this.dialogVisible = true;
+                this.form = {};
+            },
+
+            // 打开编辑弹窗，并回填当前行数据
+            edit(row) {
+                this.form = Object.assign({}, row);
+                this.dialogVisible = true;
+            },
+
+            // 保存数据，id 存在时走修改，不存在时走新增
+            save() {
+                let type = this.form.id ? 'PUT' : 'POST';
+                $.ajax({
+                    url: '/user',
+                    type: type,
+                    contentType: 'application/json',
+                    data: JSON.stringify(this.form)
+                }).then(res => {
+                    if (res.code === '0') {
+                        this.$message.success('保存成功');
+                        this.dialogVisible = false;
+                        this.loadTable(this.pageNum);
+                    } else {
+                        this.$message.error(res.msg || '保存失败');
+                    }
+                }).catch(() => {
+                    this.$message.error('请求失败，请检查后端服务');
+                });
+            },
+
+            // 删除指定用户
+            del(id) {
+                this.$confirm('确认删除这条数据吗？', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    $.ajax({
+                        url: '/user/' + id,
+                        type: 'DELETE'
+                    }).then(res => {
+                        if (res.code === '0') {
+                            this.$message.success('删除成功');
+                            this.loadTable(1);
+                        } else {
+                            this.$message.error(res.msg || '删除失败');
+                        }
+                    }).catch(() => {
+                        this.$message.error('请求失败，请检查后端服务');
+                    });
+                }).catch(() => {
+                });
+            },
+
+            // 清理本地登录信息，并返回登录页
+            logout() {
+                localStorage.removeItem('loginUser');
+                window.location.href = 'page/login.html';
+            }
+        }
+    });
+</script>
+</body>
+</html>

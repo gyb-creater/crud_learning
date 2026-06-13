@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录页面</title>
+    <link rel="stylesheet" href="../element.css">
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #0c4a7c 0%, #1976b8 55%, #6fc2ff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #app {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        .login-card {
+            width: 430px;
+            border-radius: 20px;
+            overflow: hidden;
+            background: rgba(9, 28, 48, 0.78);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+            backdrop-filter: blur(6px);
+        }
+
+        .login-header {
+            padding: 28px 32px 20px;
+            text-align: center;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .login-header h2 {
+            margin: 0;
+            font-size: 30px;
+            letter-spacing: 2px;
+        }
+
+        .login-header p {
+            margin: 10px 0 0;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .login-body {
+            padding: 30px 32px 34px;
+        }
+
+        .login-tip {
+            margin: 4px 0 14px;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .login-form .el-form-item {
+            margin-bottom: 20px;
+        }
+
+        .login-form .el-input__inner,
+        .login-form .el-select .el-input__inner {
+            height: 46px;
+            line-height: 46px;
+            border-radius: 10px;
+            border: none;
+        }
+
+        .login-btn {
+            width: 100%;
+            height: 46px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #f39c12, #f7b844);
+        }
+
+        .register-row {
+            margin-top: 18px;
+            text-align: center;
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        .register-row a {
+            color: #ffd54f;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="login-card">
+        <div class="login-header">
+            <h2>用户登录</h2>
+            <p>Student Information Management System</p>
+        </div>
+
+        <div class="login-body">
+            <!-- 使用 Element UI 表单承载真实登录输入 -->
+            <el-form :model="user" class="login-form">
+                <el-form-item>
+                    <el-input v-model="user.name" placeholder="用户名" prefix-icon="el-icon-user"></el-input>
+                </el-form-item>
+
+                <el-form-item>
+                    <el-input v-model="user.password" type="password" placeholder="密码" prefix-icon="el-icon-lock" show-password></el-input>
+                </el-form-item>
+
+                <div class="login-tip">请选择角色</div>
+
+                <el-form-item>
+                    <el-select v-model="user.level" placeholder="请选择角色" style="width: 100%;">
+                        <el-option label="管理员" value="1"></el-option>
+                        <el-option label="教师" value="2"></el-option>
+                        <el-option label="学生" value="3"></el-option>
+                    </el-select>
+                </el-form-item>
+
+                <el-form-item>
+                    <el-button type="warning" class="login-btn" @click="login">登录</el-button>
+                </el-form-item>
+            </el-form>
+
+            <div class="register-row">
+                <span>未注册？</span>
+                <a href="register.html">点击这里</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../jquery.min.js"></script>
+<script src="../vue.js"></script>
+<script src="../element.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            user: {
+                name: '',
+                password: '',
+                level: ''
+            }
+        },
+        created() {
+            var loginUser = localStorage.getItem('loginUser');
+            if (loginUser) {
+                window.location.href = '../index.html';
+            }
+        },
+        methods: {
+            // 真实调用后端登录接口，成功后把用户信息存到本地并跳转列表页
+            login() {
+                $.ajax({
+                    url: '/user/login',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(this.user)
+                }).then(res => {
+                    if (res.code === '0') {
+                        localStorage.setItem('loginUser', JSON.stringify(res.data || {}));
+                        this.$message.success('登录成功');
+                        setTimeout(function () {
+                            window.location.href = '../index.html';
+                        }, 500);
+                    } else {
+                        this.$message.error(res.msg || '登录失败');
+                    }
+                }).catch(() => {
+                    this.$message.error('请求失败，请检查后端服务');
+                });
+            }
+        }
+    });
+</script>
+</body>
+</html>

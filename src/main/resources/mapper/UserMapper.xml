@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huse.demo.dao.UserMapper">
+
+    <!-- 统一定义 user 表字段，便于多个 SQL 复用 -->
+    <sql id="Base_Column_List">
+        id, name, age, sex, address, phone, create_time, password, level
+    </sql>
+
+    <!-- 把数据库字段和实体属性做一一映射 -->
+    <resultMap id="UserResultMap" type="com.huse.demo.entity.User">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="age" property="age"/>
+        <result column="sex" property="sex"/>
+        <result column="address" property="address"/>
+        <result column="phone" property="phone"/>
+        <result column="create_time" property="createTime"/>
+        <result column="password" property="password"/>
+        <result column="level" property="level"/>
+    </resultMap>
+
+    <!-- 分页查询用户数据，name 有值时进行模糊匹配 -->
+    <select id="selectPage" resultMap="UserResultMap">
+        select <include refid="Base_Column_List"/>
+        from user
+        <where>
+            <if test="name != null and name != ''">
+                and name like concat('%', #{name}, '%')
+            </if>
+        </where>
+        order by id desc
+        limit #{offset}, #{pageSize}
+    </select>
+
+    <!-- 统计用户总数，和分页查询使用相同条件 -->
+    <select id="count" resultType="java.lang.Long">
+        select count(*)
+        from user
+        <where>
+            <if test="name != null and name != ''">
+                and name like concat('%', #{name}, '%')
+            </if>
+        </where>
+    </select>
+
+    <!-- 按 id 查询用户 -->
+    <select id="selectById" resultMap="UserResultMap">
+        select <include refid="Base_Column_List"/>
+        from user
+        where id = #{id}
+    </select>
+
+    <!-- 按用户名查询用户 -->
+    <select id="selectByName" resultMap="UserResultMap">
+        select <include refid="Base_Column_List"/>
+        from user
+        where name = #{name}
+        limit 1
+    </select>
+
+    <!-- 登录校验，需要用户名、密码、角色全部匹配 -->
+    <select id="selectByLogin" resultMap="UserResultMap">
+        select <include refid="Base_Column_List"/>
+        from user
+        where name = #{name}
+          and password = #{password}
+          and level = #{level}
+        limit 1
+    </select>
+
+    <!-- 新增用户，并回填数据库自增主键 -->
+    <insert id="insert" parameterType="com.huse.demo.entity.User" useGeneratedKeys="true" keyProperty="id">
+        insert into user (name, age, sex, address, phone, create_time, password, level)
+        values (#{name}, #{age}, #{sex}, #{address}, #{phone}, #{createTime}, #{password}, #{level})
+    </insert>
+
+    <!-- 修改用户信息 -->
+    <update id="update" parameterType="com.huse.demo.entity.User">
+        update user
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="age != null">age = #{age},</if>
+            <if test="sex != null">sex = #{sex},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="password != null and password != ''">password = #{password},</if>
+            <if test="level != null and level != ''">level = #{level},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!-- 按 id 删除用户 -->
+    <delete id="deleteById">
+        delete from user where id = #{id}
+    </delete>
+
+</mapper>
