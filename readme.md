@@ -45,7 +45,7 @@
 
 ## 3. 项目功能说明
 
-### 3.1 登录功能
+### 3.1 登录功能![1781356161432](C:\Users\llb\Desktop\student\assets\1781356161432.png)
 
 登录页地址：
 
@@ -60,7 +60,7 @@
 - 登录成功后把用户信息保存到 `localStorage`
 - 自动跳转到 `index.html`
 
-### 3.2 注册功能
+### 3.2 注册功能![1781356190838](C:\Users\llb\Desktop\student\assets\1781356190838.png)
 
 注册页地址：
 
@@ -76,9 +76,9 @@
 - 调用后端 `/user/register`
 - 注册成功后跳转回登录页
 
-### 3.3 用户列表功能
+### 3.3 用户列表功能![1781356223441](C:\Users\llb\Desktop\student\assets\1781356223441.png)
 
-首页地址：
+![1781356262802](C:\Users\llb\Desktop\student\assets\1781356262802.png)![1781356282239](C:\Users\llb\Desktop\student\assets\1781356282239.png)![1781356386528](C:\Users\llb\Desktop\student\assets\1781356386528.png)首页地址：
 
 - `http://localhost:8080/index.html`
 
